@@ -1,6 +1,6 @@
 {
   "source": "https://core.telegram.org/bots/api",
-  "fetchedAt": "2026-06-13T07:59:21.675Z",
+  "fetchedAt": "2026-06-18T07:25:31.760Z",
   "generatedBy": "scripts/update-telegram-schema.mjs",
   "methodCount": 180,
   "typeCount": 359,
@@ -3086,7 +3086,7 @@
     {
       "name": "sendChatJoinRequestWebApp",
       "category": "Available methods",
-      "description": "Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome. Returns True on success.",
+      "description": "Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome. Call answerChatJoinRequestQuery to resolve the join request query based on the user interaction with the Mini App. Returns True on success.",
       "parameters": [
         {
           "name": "chat_join_request_query_id",
@@ -5959,7 +5959,7 @@
           "name": "business_connection_id",
           "type": "String",
           "required": false,
-          "description": "Unique identifier of the business connection on behalf of which the message will be sent"
+          "description": "Unique identifier of the business connection on behalf of which the message will be sent. Bot can send rich messages on behalf of a business account only if the corresponding user can send rich messages."
         },
         {
           "name": "chat_id",
@@ -16794,7 +16794,7 @@
     {
       "name": "RichBlockPhoto",
       "category": "Rich messages",
-      "description": "A block with a photo, corresponding to the HTML tag <photo> .",
+      "description": "A block with a photo, corresponding to the HTML tag <img> .",
       "fields": [
         {
           "name": "type",
