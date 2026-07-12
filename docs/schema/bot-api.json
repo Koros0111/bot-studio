@@ -1,6 +1,6 @@
 {
   "source": "https://core.telegram.org/bots/api",
-  "fetchedAt": "2026-07-07T13:10:41.037Z",
+  "fetchedAt": "2026-07-12T23:41:12.383Z",
   "generatedBy": "scripts/update-telegram-schema.mjs",
   "methodCount": 180,
   "typeCount": 359,
@@ -5147,7 +5147,7 @@
           "name": "media",
           "type": "InputMedia",
           "required": true,
-          "description": "A JSON-serialized object for a new media content of the message"
+          "description": "A JSON-serialized object for the new media content of the message"
         },
         {
           "name": "reply_markup",
