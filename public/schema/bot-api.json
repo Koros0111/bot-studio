@@ -1,6 +1,6 @@
 {
   "source": "https://core.telegram.org/bots/api",
-  "fetchedAt": "2026-07-14T13:03:18.152Z",
+  "fetchedAt": "2026-07-15T13:06:44.653Z",
   "generatedBy": "scripts/update-telegram-schema.mjs",
   "methodCount": 185,
   "typeCount": 388,
@@ -168,7 +168,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "text",
@@ -562,7 +562,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "photo",
@@ -684,7 +684,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "live_photo",
@@ -812,7 +812,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "audio",
@@ -946,7 +946,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "document",
@@ -1068,7 +1068,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "video",
@@ -1232,7 +1232,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "animation",
@@ -1378,7 +1378,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "voice",
@@ -1494,7 +1494,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "video_note",
@@ -1782,7 +1782,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "latitude",
@@ -1904,7 +1904,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "latitude",
@@ -2038,7 +2038,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "phone_number",
@@ -5913,7 +5913,7 @@
           "name": "callback_query_id",
           "type": "String",
           "required": false,
-          "description": "For outgoing ephemeral messages, identifier of the callback query which triggerred the message if any"
+          "description": "For outgoing ephemeral messages, identifier of the callback query which triggered the message if any"
         },
         {
           "name": "sticker",
