@@ -8,19 +8,24 @@ export default {
       colors: {
         ink: {
           950: "#000000",
-          900: "#090909",
-          850: "#121212",
-          800: "#1a1a1a",
-          700: "#2b2b2b"
+          700: "#616365"
         },
         paper: {
           50: "#ffffff",
           100: "#f7f7f7",
-          200: "#eeeeee",
-          300: "#dedede"
+          200: "#e8e8e8",
+          300: "#919ba6"
+        },
+        navy: {
+          900: "#17212b",
+          800: "#1c2733",
+          700: "#232e3c"
         },
         signal: {
-          blue: "#229ED9",
+          blue: "#0088cc",
+          blueHover: "#0077b3",
+          blueDark: "#3390ec",
+          blueBright: "#5eb0f3",
           cyan: "#3dd6c6",
           lime: "#a9e34b",
           amber: "#f5b84b",
@@ -32,7 +37,16 @@ export default {
         darkSoft: "0 18px 60px rgb(0 0 0 / 0.38)"
       },
       fontFamily: {
-        sans: ["Lucida Grande", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Lucida Grande",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
         mono: ["JetBrains Mono", "SFMono-Regular", "Consolas", "monospace"]
       }
     }
