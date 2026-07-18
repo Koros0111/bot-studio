@@ -37,14 +37,35 @@ function isTypeName(value) {
   return /^[A-Z][A-Za-z0-9]+$/.test(value);
 }
 
-function parseRows(block) {
+// Method parameter tables are "Parameter | Type | Required | Description" (4 columns). Object/type
+// field tables have no Required column at all — just "Field | Type | Description" (3 columns).
+// Telegram instead marks an optional *type* field by prefixing its description with "Optional.".
+// Getting this wrong silently discards every type field's real description into the (nonexistent)
+// Required column, which is why every type's fields used to render with blank descriptions.
+function parseRows(block, { isType = false } = {}) {
   const tableMatch = block.match(/<table[\s\S]*?<\/table>/i);
   if (!tableMatch) return [];
 
-  return Array.from(tableMatch[0].matchAll(/<tr[\s\S]*?<\/tr>/gi))
+  const rows = Array.from(tableMatch[0].matchAll(/<tr[\s\S]*?<\/tr>/gi))
     .slice(1)
-    .map(([row]) => Array.from(row.matchAll(/<td[\s\S]*?<\/td>/gi)).map(([cell]) => text(cell)))
-    .filter((cells) => cells.length >= 3)
+    .map(([row]) => Array.from(row.matchAll(/<td[\s\S]*?<\/td>/gi)).map(([cell]) => text(cell)));
+
+  if (isType) {
+    return rows
+      .filter((cells) => cells.length >= 3)
+      .map(([name, type, ...description]) => {
+        const descriptionText = description.join(" ").trim();
+        return {
+          name,
+          type,
+          required: !/^optional\b/i.test(descriptionText),
+          description: descriptionText
+        };
+      });
+  }
+
+  return rows
+    .filter((cells) => cells.length >= 4)
     .map(([name, type, required, ...description]) => ({
       name,
       type,
@@ -84,7 +105,10 @@ function parseDocs(html) {
       .filter(Boolean);
     const description = paragraphs.join(" ");
     const officialUrl = `${source}#${slug(title)}`;
-    const rows = parseRows(block);
+    // isMethodName/isTypeName are mutually exclusive (method names start lowercase, type names
+    // uppercase) and the heading was already filtered to match one of them above, so "not a
+    // method" here is always "a type".
+    const rows = parseRows(block, { isType: !isMethodName(title) });
 
     if (isMethodName(title)) {
       methods.push({
