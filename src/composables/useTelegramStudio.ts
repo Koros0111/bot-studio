@@ -1,4 +1,4 @@
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import type { Notice, ParamValue, ResponseState, TelegramMethod, TelegramSchema } from "@/types/schema";
 import {
   buildPreviewPayload,
@@ -136,6 +136,57 @@ export function useTelegramStudio() {
   watch(values, syncRequestFromValues, { deep: true });
   watch(requestJson, syncValuesFromRequest);
 
+  // SEO / deep-link support: methods live at a URL of the form `/methodName`
+  // (one path segment deep, resolved relative to wherever the app is hosted -
+  // see the <a :href="method.name"> links in MethodSidebar.vue). These
+  // helpers translate between that URL segment and a schema method, and keep
+  // <title>/<meta name="description"> in sync with the current selection.
+  const metaDescriptionEl = typeof document !== "undefined" ? document.querySelector('meta[name="description"]') : null;
+  const defaultTitle = typeof document !== "undefined" ? document.title : "Bot Studio";
+  const defaultDescription = metaDescriptionEl?.getAttribute("content") ?? "";
+
+  function lastPathSegment(pathname: string): string {
+    const segments = pathname.split("/").filter(Boolean);
+    const raw = segments[segments.length - 1] ?? "";
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+
+  function resolveMethodFromLocation(): TelegramMethod | null {
+    const name = lastPathSegment(window.location.pathname);
+    if (!name) return null;
+    return (schema.value?.methods ?? []).find((method) => method.name === name) ?? null;
+  }
+
+  function updateDocumentMeta(method: TelegramMethod | null) {
+    if (typeof document === "undefined") return;
+    document.title = method ? `${method.name} · Bot Studio` : defaultTitle;
+    if (metaDescriptionEl) {
+      metaDescriptionEl.setAttribute(
+        "content",
+        method ? method.description || `Build and test the Telegram Bot API "${method.name}" method with Bot Studio.` : defaultDescription
+      );
+    }
+  }
+
+  function handlePopState() {
+    // The browser has already updated location.pathname for us (back/forward
+    // navigation); just resync in-memory state to match. If the segment
+    // doesn't match a known method, fall back to the "no selection" state.
+    selectMethod(resolveMethodFromLocation());
+  }
+
+  onMounted(() => {
+    window.addEventListener("popstate", handlePopState);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener("popstate", handlePopState);
+  });
+
   function notify(tone: Notice["tone"], title: string, message: string) {
     const notice = { id: ++noticeId, tone, title, message };
     notices.value = [notice, ...notices.value].slice(0, 4);
@@ -153,6 +204,7 @@ export function useTelegramStudio() {
     response.status = "waiting";
     response.payload = null;
     response.error = "";
+    updateDocumentMeta(method);
   }
 
   async function loadSchema() {
@@ -162,7 +214,10 @@ export function useTelegramStudio() {
       const nextSchema = (await res.json()) as TelegramSchema;
       if (!Array.isArray(nextSchema.methods) || nextSchema.methods.length === 0) throw new Error("No Telegram methods found.");
       schema.value = nextSchema;
-      selectMethod(null);
+      // Deep-link support: if the page was loaded (or hard-refreshed) at
+      // `/methodName`, land on that method already selected instead of
+      // resetting to "no selection".
+      selectMethod(resolveMethodFromLocation());
     } finally {
       loadingSchema.value = false;
     }
