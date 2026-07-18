@@ -34,13 +34,13 @@ export function displayName(name: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-const primitiveTypeNames = new Set(["String", "Integer", "Float", "Boolean", "True", "InputFile"]);
+export const primitiveTypeNames = new Set(["String", "Integer", "Float", "Boolean", "True", "InputFile"]);
 
-function typeWords(type: string) {
+export function typeWords(type: string) {
   return [...type.matchAll(/\b[A-Z][A-Za-z0-9]*\b/g)].map(([word]) => word);
 }
 
-function hasType(type: string, name: string) {
+export function hasType(type: string, name: string) {
   return new RegExp(`\\b${name}\\b`, "i").test(type);
 }
 
@@ -157,8 +157,12 @@ export function buildPayload(method: TelegramMethod | null, values: Record<strin
   method.parameters.forEach((parameter) => {
     const rawValue = inferKind(parameter) === "file" ? fileParamValue(values[parameter.name]) : values[parameter.name];
     const parsed = parseValue(parameter.type, rawValue);
+    if (parsed === undefined || parsed === "") return;
+    // Mirrors typeSchema.ts's isEmptySerialized: an untouched optional boolean defaults to
+    // false, which would otherwise silently appear in every request payload. Omit it unless
+    // the parameter is required, in which case an explicit false is meaningful and must survive.
     if (parsed === false && !parameter.required) return;
-    if (parsed !== undefined && parsed !== "") payload[parameter.name] = parsed;
+    payload[parameter.name] = parsed;
   });
 
   return payload;
