@@ -5,6 +5,13 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig, type Plugin, type ResolvedConfig } from 'vite';
 
 const FONT_EXTENSIONS = /\.(?:ttf|woff2?|otf)$/i;
+const SITE_URL = 'https://telefunction.github.io/bot-studio/';
+
+function resolveOutDir(config: ResolvedConfig): string {
+  return path.isAbsolute(config.build.outDir)
+    ? config.build.outDir
+    : path.resolve(config.root, config.build.outDir);
+}
 
 /**
  * The compiled Tailwind stylesheet is tiny (a few KB gzipped) and, loaded via
@@ -83,19 +90,16 @@ function inlineCssPlugin(): Plugin {
  * `.../bot-studio/` or `.../bot-studio/sendMessage`.
  */
 function spaFallbackPlugin(): Plugin {
-  let outDir = 'docs';
-  let root = process.cwd();
+  let outDir = '';
 
   return {
     name: 'spa-404-fallback',
     configResolved(config: ResolvedConfig) {
-      outDir = config.build.outDir;
-      root = config.root;
+      outDir = resolveOutDir(config);
     },
     closeBundle() {
-      const resolvedOutDir = path.isAbsolute(outDir) ? outDir : path.resolve(root, outDir);
-      const indexPath = path.join(resolvedOutDir, 'index.html');
-      const notFoundPath = path.join(resolvedOutDir, '404.html');
+      const indexPath = path.join(outDir, 'index.html');
+      const notFoundPath = path.join(outDir, '404.html');
       if (fs.existsSync(indexPath)) {
         fs.copyFileSync(indexPath, notFoundPath);
       }
@@ -113,18 +117,15 @@ function spaFallbackPlugin(): Plugin {
  * git-tracked source file untouched.
  */
 function minifySchemaPlugin(): Plugin {
-  let outDir = 'docs';
-  let root = process.cwd();
+  let outDir = '';
 
   return {
     name: 'minify-schema-json',
     configResolved(config: ResolvedConfig) {
-      outDir = config.build.outDir;
-      root = config.root;
+      outDir = resolveOutDir(config);
     },
     closeBundle() {
-      const resolvedOutDir = path.isAbsolute(outDir) ? outDir : path.resolve(root, outDir);
-      const schemaPath = path.join(resolvedOutDir, 'schema', 'bot-api.json');
+      const schemaPath = path.join(outDir, 'schema', 'bot-api.json');
       if (!fs.existsSync(schemaPath)) return;
       const parsed = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
       fs.writeFileSync(schemaPath, JSON.stringify(parsed));
@@ -132,9 +133,40 @@ function minifySchemaPlugin(): Plugin {
   };
 }
 
+/**
+ * The app exposes 185 real, directly loadable per-method routes (e.g.
+ * `/sendMessage`, `/getUpdates` — see spaFallbackPlugin above), but nothing
+ * told crawlers those routes exist. Generate a sitemap listing the home page
+ * and every method route from the same canonical schema the app itself reads,
+ * so it can't drift out of sync with the actual method list.
+ */
+function sitemapPlugin(): Plugin {
+  let outDir = '';
+  let schemaPath = '';
+
+  return {
+    name: 'generate-sitemap',
+    configResolved(config: ResolvedConfig) {
+      outDir = resolveOutDir(config);
+      schemaPath = path.resolve(config.root, 'public/schema/bot-api.json');
+    },
+    closeBundle() {
+      if (!fs.existsSync(schemaPath)) return;
+      const { methods } = JSON.parse(fs.readFileSync(schemaPath, 'utf8')) as {
+        methods: { name: string }[];
+      };
+      const urls = [SITE_URL, ...methods.map((method) => `${SITE_URL}${method.name}`)];
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+        .map((url) => `  <url><loc>${url}</loc></url>`)
+        .join('\n')}\n</urlset>\n`;
+      fs.writeFileSync(path.join(outDir, 'sitemap.xml'), xml);
+    },
+  };
+}
+
 export default defineConfig({
   base: './',
-  plugins: [vue(), inlineCssPlugin(), spaFallbackPlugin(), minifySchemaPlugin()],
+  plugins: [vue(), inlineCssPlugin(), spaFallbackPlugin(), minifySchemaPlugin(), sitemapPlugin()],
   build: {
     outDir: 'docs',
     emptyOutDir: true,

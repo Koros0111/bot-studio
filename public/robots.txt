@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://telefunction.github.io/bot-studio/sitemap.xml
