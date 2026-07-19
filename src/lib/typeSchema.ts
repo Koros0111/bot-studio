@@ -183,6 +183,31 @@ export function isResolvableBranch(node: TypeNode): boolean {
 }
 
 /**
+ * True when TypeFieldEditor.vue has a real, non-dead-end control for this branch: any primitive,
+ * any array, a custom type with at least one field, or a union with at least one such branch.
+ * Distinct from isResolvableBranch, which answers a narrower question (does this branch justify
+ * ParameterInput.vue's top-level wand icon) and deliberately excludes bare primitives there - a
+ * plain "Integer or String" field like chat_id doesn't need the visual builder at the top level.
+ * But once already inside the builder, e.g. editing a nested ReplyParameters.chat_id field, a union
+ * of primitives must still render as a normal variant toggle + input, not fall through to a raw-JSON
+ * dead end just because neither branch is a custom type (issue: "Chat Id" rendering as "Integer or
+ * String" / raw JSON instead of a usable Integer/String toggle).
+ */
+export function isRenderableBranch(node: TypeNode): boolean {
+  switch (node.kind) {
+    case 'primitive':
+    case 'array':
+      return true;
+    case 'custom':
+      return node.type.fields.length > 0;
+    case 'union':
+      return node.branches.some(isRenderableBranch);
+    case 'unknown':
+      return false;
+  }
+}
+
+/**
  * True when the builder has something concretely useful to render for this branch: either a
  * known custom type (nested or not), or a plain one-level "Array of <primitive>" (e.g. "Array of
  * String") which already gets a real add/remove list widget in TypeFieldEditor. Kept separate from

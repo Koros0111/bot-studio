@@ -4,6 +4,7 @@ import { Upload, Wand2, X } from 'lucide-vue-next';
 import type { FileValue, ParamValue, TelegramParameter, TelegramSchema } from '@/types/schema';
 import { displayName, fileAccept, inferKind } from '@/lib/telegram';
 import { resolvableVariants } from '@/lib/typeSchema';
+import AppCheckbox from '@/components/AppCheckbox.vue';
 import ExpandableText from '@/components/ExpandableText.vue';
 
 // TypeEditorModal (and the recursive TypeFieldEditor tree it pulls in) is the
@@ -80,7 +81,7 @@ function onFile(event: Event) {
     </span>
     <ExpandableText
       tag="blockquote"
-      class="mt-3 min-h-5 rounded-md border-l-4 border-signal-blue/40 pl-2 p-1 text-xs italic leading-5 text-ink-700 dark:border-signal-blueDark/50 dark:text-paper-300 bg-signal-blue/5 dark:bg-navy-700"
+      class="mt-3 min-h-5 rounded-md border-l-4 border-signal-blue/40 bg-signal-blue/5 p-1 pl-2 text-xs italic leading-5 text-ink-700 dark:border-signal-blueDark/50 dark:bg-navy-700 dark:text-paper-300"
       :text="parameter.description"
       :lines="2"
     />
@@ -94,11 +95,7 @@ function onFile(event: Event) {
       v-if="kind === 'boolean'"
       class="mt-4 flex items-center gap-3 text-sm font-bold text-ink-700 dark:text-paper-300"
     >
-      <input
-        v-model="booleanValue"
-        type="checkbox"
-        class="h-5 w-5 cursor-pointer rounded border-2 border-ink-950/20 accent-signal-blue transition hover:scale-105 dark:border-paper-50/20 dark:accent-signal-blueDark"
-      />
+      <AppCheckbox v-model="booleanValue" size="md" />
       {{ booleanValue ? 'True' : 'False' }}
     </label>
 
