@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
-import { Bot, Moon, Sun, Monitor, Github, Send } from 'lucide-vue-next';
+import { Bot, Moon, Sun, Monitor, Github, Send, TriangleAlert } from 'lucide-vue-next';
 import ExpandableText from '@/components/ExpandableText.vue';
 import MethodSidebar from '@/components/MethodSidebar.vue';
 import TokenBox from '@/components/TokenBox.vue';
@@ -8,8 +8,10 @@ import ParameterForm from '@/components/ParameterForm.vue';
 import ResultRail from '@/components/ResultRail.vue';
 import ToastStack from '@/components/ToastStack.vue';
 import NotFoundView from '@/components/NotFoundView.vue';
+import PrivacyNoticeModal from '@/components/PrivacyNoticeModal.vue';
 import { useTelegramStudio } from '@/composables/useTelegramStudio';
 import { navigateOnClick } from '@/lib/navigation';
+import { getCookie, PRIVACY_NOTICE_COOKIE } from '@/lib/cookies';
 
 const studio = useTelegramStudio();
 const {
@@ -68,6 +70,8 @@ function handleSystemThemeChange(event: MediaQueryListEvent) {
   systemPrefersDark.value = event.matches;
 }
 
+const privacyNoticeOpen = ref(false);
+
 watch(theme, () => {
   localStorage.setItem('bot-studio.theme', theme.value);
 });
@@ -79,6 +83,9 @@ watchEffect(() => {
 
 onMounted(async () => {
   systemDark.addEventListener('change', handleSystemThemeChange);
+  if (!getCookie(PRIVACY_NOTICE_COOKIE)) {
+    privacyNoticeOpen.value = true;
+  }
   await loadSchema();
 });
 
@@ -90,6 +97,7 @@ onUnmounted(() => {
 <template>
   <div class="app-shell">
     <ToastStack :notices="notices" />
+    <PrivacyNoticeModal v-model:open="privacyNoticeOpen" />
 
     <header
       class="sticky top-0 z-30 border-b border-ink-950/[0.08] bg-paper-50/[0.84] px-4 py-3 backdrop-blur-[25px] dark:border-paper-50/[0.08] dark:bg-[var(--page-bg)] dark:backdrop-blur-none sm:px-6"
@@ -126,6 +134,15 @@ onUnmounted(() => {
             >
               {{ themeLabel }}
             </span>
+          </button>
+          <button
+            type="button"
+            class="icon-button"
+            title="Privacy & security notice"
+            aria-label="Privacy & security notice"
+            @click="privacyNoticeOpen = true"
+          >
+            <TriangleAlert class="h-4 w-4" />
           </button>
           <a
             class="icon-button"
