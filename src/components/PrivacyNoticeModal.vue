@@ -36,49 +36,46 @@ const { onKeydown } = useFocusTrap(dialogRef, dismiss);
         <div class="relative flex min-h-full items-center justify-center">
           <div
             ref="dialogRef"
-            class="panel relative flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-xl"
+            class="panel relative flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl"
             role="dialog"
             aria-modal="true"
             :aria-labelledby="titleId"
             tabindex="-1"
             @keydown="onKeydown"
           >
-            <!-- Lime→cyan→blue gradient marks this as a "trust" surface distinct from the
-            builder's blue gradient strip, while staying within the existing signal.* tokens. -->
-            <div
-              class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-signal-lime via-signal-cyan to-signal-blueBright"
-            />
-
-            <div
-              class="relative shrink-0 overflow-hidden border-b border-ink-950/[0.08] px-6 py-4 dark:border-paper-50/[0.08]"
+            <!-- "Seal" identity: a centered badge with concentric rings, like a wax seal or a
+            verified-document stamp, marking this as a trust surface — deliberately unlike the
+            Builder modal's always-dark editor-toolbar header, since this isn't a tool, it's a
+            reassurance. -->
+            <button
+              type="button"
+              class="icon-button absolute right-4 top-4 z-10"
+              title="Close"
+              aria-label="Close"
+              @click="dismiss"
             >
+              <X class="h-4 w-4" />
+            </button>
+
+            <div class="relative shrink-0 overflow-hidden px-6 pb-5 pt-8 text-center">
               <div
-                class="pointer-events-none absolute inset-0 bg-gradient-to-r from-signal-lime/10 via-transparent to-transparent dark:from-signal-lime/[0.08]"
+                class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-signal-lime/10 to-transparent dark:from-signal-lime/[0.08]"
               />
-              <div class="relative flex items-center justify-between gap-3">
-                <div class="flex min-w-0 flex-1 items-center gap-3">
-                  <div
-                    class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-signal-lime/40 bg-signal-lime/10 text-signal-lime dark:border-signal-lime/30 dark:bg-signal-lime/15"
-                  >
-                    <ShieldCheck class="h-5 w-5" />
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <h3 :id="titleId" class="truncate text-lg font-black">Your data stays yours</h3>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  class="icon-button shrink-0"
-                  title="Close"
-                  aria-label="Close"
-                  @click="dismiss"
+              <div class="relative mx-auto flex h-16 w-16 items-center justify-center">
+                <span class="absolute inset-0 rounded-full border-2 border-signal-lime/20" />
+                <span class="absolute inset-2 rounded-full border border-signal-lime/35" />
+                <div
+                  class="relative grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-signal-lime to-signal-cyan text-ink-950 shadow-soft dark:shadow-darkSoft"
                 >
-                  <X class="h-4 w-4" />
-                </button>
+                  <ShieldCheck class="h-5 w-5" />
+                </div>
               </div>
+              <h3 :id="titleId" class="relative mt-3 text-lg font-black">Your data stays yours</h3>
             </div>
 
-            <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5 text-sm leading-6">
+            <div
+              class="min-h-0 flex-1 space-y-4 overflow-y-auto border-t border-ink-950/[0.08] px-6 py-5 text-sm leading-6 dark:border-paper-50/[0.08]"
+            >
               <p class="text-ink-950 dark:text-paper-50">
                 Bot Studio has <span class="font-black">no backend</span>. There is no server
                 operated by this project sitting between you and Telegram — every request you
@@ -135,28 +132,3 @@ const { onKeydown } = useFocusTrap(dialogRef, dismiss);
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-.modal-pop-enter-active,
-.modal-pop-leave-active {
-  transition: opacity 0.18s ease;
-}
-
-.modal-pop-enter-active .panel,
-.modal-pop-leave-active .panel {
-  transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
-}
-
-.modal-pop-enter-from,
-.modal-pop-leave-to {
-  opacity: 0;
-}
-
-.modal-pop-enter-from .panel,
-.modal-pop-leave-to .panel {
-  opacity: 0;
-  transform: scale(0.97) translateY(4px);
-}
-</style>

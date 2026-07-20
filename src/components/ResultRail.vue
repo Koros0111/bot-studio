@@ -68,7 +68,7 @@ watch(responseFullscreen, (isOpen, wasOpen) => {
 
 <template>
   <aside class="grid min-w-0 content-start gap-4 xl:block xl:space-y-4">
-    <section class="panel min-w-0 rounded-xl p-4">
+    <section class="panel min-w-0 rounded-2xl p-4">
       <div class="mb-3 flex items-center justify-between gap-3">
         <h3 class="text-lg font-black">Request</h3>
         <div class="flex items-center gap-2">
@@ -117,7 +117,7 @@ watch(responseFullscreen, (isOpen, wasOpen) => {
       </p>
     </section>
 
-    <section class="panel min-w-0 rounded-xl p-4">
+    <section class="panel min-w-0 rounded-2xl p-4">
       <div class="mb-3 flex items-center justify-between gap-3">
         <h3 class="text-lg font-black">Response</h3>
         <div class="flex items-center gap-2">

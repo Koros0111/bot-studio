@@ -12,6 +12,7 @@ import {
 import { displayName } from '@/lib/telegram';
 import { useFocusTrap } from '@/composables/useFocusTrap';
 import TypeFieldEditor from '@/components/TypeFieldEditor.vue';
+import FieldMeta from '@/components/FieldMeta.vue';
 
 const props = defineProps<{ parameter: TelegramParameter; schema: TelegramSchema }>();
 
@@ -67,37 +68,49 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
         <div class="relative flex min-h-full items-center justify-center">
           <div
             ref="dialogRef"
-            class="panel relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl"
+            class="panel relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl"
             role="dialog"
             aria-modal="true"
             :aria-labelledby="titleId"
             tabindex="-1"
             @keydown="onKeydown"
           >
-            <!-- A thin gradient strip marking this as the app's headline "visual JSON builder" feature,
-          not just another panel — cheap visual identity that still only uses existing signal.* tokens. -->
-            <div
-              class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-signal-blue via-signal-cyan to-signal-blueBright"
-            />
-
+            <!-- The badge echoes App.vue's own logo mark (same rounded-2xl gradient + breathing glow)
+            instead of borrowing a code-editor's chrome — this is the app's headline feature, so it
+            gets the app's own brand treatment rather than a "developer tool" costume. The field name
+            + type reuses FieldMeta (name plus a hover/tap tooltip for the type), the exact same
+            convention every field already uses in the form and inside this builder itself, instead
+            of a standalone always-visible mono "field : type" line. -->
             <div
               class="relative shrink-0 overflow-hidden border-b border-ink-950/[0.08] px-6 py-4 dark:border-paper-50/[0.08]"
             >
               <div
-                class="pointer-events-none absolute inset-0 bg-gradient-to-r from-signal-blue/10 via-transparent to-transparent dark:from-signal-blueDark/15"
+                class="pointer-events-none absolute inset-0 bg-gradient-to-br from-signal-blue/[0.07] via-transparent to-signal-cyan/[0.06] dark:from-signal-blueDark/[0.12] dark:to-signal-cyan/[0.06]"
               />
-              <div class="relative flex items-center justify-between gap-3">
-                <div class="flex min-w-0 flex-1 items-center gap-3">
+              <div class="relative flex items-center gap-3">
+                <div class="relative shrink-0">
+                  <span
+                    class="absolute inset-0 -z-10 animate-breathe rounded-2xl bg-signal-blue/40 blur-md dark:bg-signal-blueDark/40"
+                    aria-hidden="true"
+                  />
                   <div
-                    class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-signal-blue/30 bg-signal-blue/10 text-signal-blue dark:border-signal-blueDark/30 dark:bg-signal-blueDark/15 dark:text-signal-blueBright"
+                    class="relative grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-signal-blue to-signal-cyan text-paper-50 shadow-glow dark:from-signal-blueDark dark:to-signal-cyan dark:shadow-glowDark"
                   >
                     <Wand2 class="h-5 w-5" />
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <h3 :id="titleId" class="truncate text-lg font-black">
-                      {{ displayName(parameter.name) }} builder
-                    </h3>
-                  </div>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p
+                    class="text-[0.68rem] font-black uppercase tracking-wide text-signal-blueHover/80 dark:text-signal-blueBright/80"
+                  >
+                    Visual builder
+                  </p>
+                  <FieldMeta
+                    :id="titleId"
+                    :name="displayName(parameter.name)"
+                    :type="parameter.type"
+                    size="lg"
+                  />
                 </div>
                 <button
                   type="button"
@@ -160,28 +173,3 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-.modal-pop-enter-active,
-.modal-pop-leave-active {
-  transition: opacity 0.18s ease;
-}
-
-.modal-pop-enter-active .panel,
-.modal-pop-leave-active .panel {
-  transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
-}
-
-.modal-pop-enter-from,
-.modal-pop-leave-to {
-  opacity: 0;
-}
-
-.modal-pop-enter-from .panel,
-.modal-pop-leave-to .panel {
-  opacity: 0;
-  transform: scale(0.97) translateY(4px);
-}
-</style>

@@ -33,8 +33,21 @@ export default {
         },
       },
       boxShadow: {
-        soft: '0 18px 60px rgb(0 0 0 / 0.10)',
-        darkSoft: '0 18px 60px rgb(0 0 0 / 0.38)',
+        // A hairline top highlight (inset) layered under the ambient drop shadow, so panels read
+        // as a lifted glass surface catching light from above rather than a flat card with a blur.
+        soft: '0 1px 0 0 rgb(255 255 255 / 0.6) inset, 0 18px 60px rgb(0 0 0 / 0.10)',
+        darkSoft: '0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 18px 60px rgb(0 0 0 / 0.38)',
+        glow: '0 8px 24px rgb(0 136 204 / 0.35)',
+        glowDark: '0 8px 24px rgb(51 144 236 / 0.45)',
+      },
+      keyframes: {
+        breathe: {
+          '0%, 100%': { opacity: '0.45', transform: 'scale(0.94)' },
+          '50%': { opacity: '0.85', transform: 'scale(1.04)' },
+        },
+      },
+      animation: {
+        breathe: 'breathe 3.2s ease-in-out infinite',
       },
       fontFamily: {
         sans: [

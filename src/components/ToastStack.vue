@@ -34,7 +34,7 @@ function toneIcon(tone: Notice['tone']) {
         <article
           v-for="notice in notices"
           :key="notice.id"
-          class="rounded-xl border p-3 shadow-soft backdrop-blur-xl dark:shadow-darkSoft"
+          class="rounded-2xl border p-3 shadow-soft backdrop-blur-xl dark:shadow-darkSoft"
           :class="toneClasses(notice.tone)"
         >
           <div class="flex gap-3">

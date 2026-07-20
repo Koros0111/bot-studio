@@ -105,17 +105,27 @@ onUnmounted(() => {
       <div class="mx-auto flex w-full max-w-[1540px] flex-row items-center justify-between gap-3">
         <a
           :href="homeHref"
-          class="flex min-w-0 items-center gap-3 rounded-lg transition hover:opacity-80 focus:outline-none focus-visible:ring-4 focus-visible:ring-signal-blue/15 dark:focus-visible:ring-signal-blueDark/25"
+          class="group flex min-w-0 items-center gap-3 rounded-lg transition focus:outline-none focus-visible:ring-4 focus-visible:ring-signal-blue/15 dark:focus-visible:ring-signal-blueDark/25"
           aria-label="Bot Studio home"
           @click="onLogoClick"
         >
-          <div
-            class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-signal-blue to-signal-blueHover text-paper-50 dark:from-signal-blueDark dark:to-signal-blueBright"
-          >
-            <Bot class="h-6 w-6" />
+          <div class="relative shrink-0">
+            <span
+              class="absolute inset-0 -z-10 animate-breathe rounded-xl bg-signal-blue/50 blur-md dark:bg-signal-blueDark/50"
+              aria-hidden="true"
+            />
+            <div
+              class="relative grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-signal-blue to-signal-blueHover text-paper-50 shadow-glow transition-transform duration-300 ease-out group-hover:-rotate-3 group-hover:scale-105 dark:from-signal-blueDark dark:to-signal-blueBright dark:shadow-glowDark"
+            >
+              <Bot class="h-6 w-6" />
+            </div>
           </div>
           <div class="min-w-0">
-            <h1 class="truncate text-xl font-black tracking-normal">Bot Studio</h1>
+            <h1
+              class="truncate bg-gradient-to-r from-ink-950 via-ink-950 to-signal-blueHover bg-clip-text text-xl font-black tracking-normal text-transparent dark:from-paper-50 dark:via-paper-50 dark:to-signal-blueBright"
+            >
+              Bot Studio
+            </h1>
           </div>
         </a>
 
@@ -171,7 +181,7 @@ onUnmounted(() => {
         @select="selectMethod"
       />
 
-      <section class="panel rounded-xl p-4 sm:p-5">
+      <section class="panel rounded-2xl p-4 sm:p-5">
         <NotFoundView
           v-if="notFound"
           :path="notFoundPath"
@@ -225,7 +235,7 @@ onUnmounted(() => {
 
             <div class="mt-5 flex flex-col gap-2 sm:flex-row">
               <button
-                class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-signal-blue bg-signal-blue px-4 font-black text-paper-50 transition hover:-translate-y-0.5 hover:bg-signal-blueHover disabled:hover:translate-y-0 dark:border-signal-blueDark dark:bg-signal-blueDark dark:hover:bg-signal-blueHover"
+                class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-signal-blue bg-gradient-to-r from-signal-blue to-signal-blueHover px-4 font-black text-paper-50 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-glow active:translate-y-0 active:scale-[0.98] disabled:hover:translate-y-0 disabled:hover:shadow-none dark:border-signal-blueDark dark:from-signal-blueDark dark:to-signal-blueBright dark:hover:shadow-glowDark"
                 type="submit"
                 :disabled="!selected || response.status === 'loading'"
               >

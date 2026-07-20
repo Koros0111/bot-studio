@@ -66,7 +66,7 @@ onUnmounted(cancelPendingGrowth);
 </script>
 
 <template>
-  <aside class="panel self-start overflow-hidden rounded-xl p-4">
+  <aside class="panel self-start overflow-hidden rounded-2xl p-4">
     <div
       class="flex h-11 items-center gap-2 rounded-lg border border-ink-950/[0.08] bg-paper-100 px-3 transition focus-within:border-signal-blue focus-within:ring-4 focus-within:ring-signal-blue/15 dark:border-paper-50/[0.08] dark:bg-navy-900 dark:focus-within:border-signal-blueDark dark:focus-within:ring-signal-blueDark/25"
     >
@@ -100,11 +100,11 @@ onUnmounted(cancelPendingGrowth);
         v-for="method in visibleMethods"
         :key="method.name"
         :href="method.name"
-        class="group min-w-0 rounded-lg border p-3 text-left transition hover:-translate-y-0.5"
+        class="group relative min-w-0 rounded-lg border p-3 text-left transition duration-200 ease-out hover:-translate-y-0.5"
         :class="
           selectedName === method.name
-            ? 'border-signal-blue bg-signal-blue/10 dark:border-signal-blueDark dark:bg-signal-blueDark/15'
-            : 'border-ink-950/[0.08] bg-paper-50 hover:border-signal-blue hover:bg-paper-100 dark:border-paper-50/[0.08] dark:bg-navy-800 dark:hover:border-signal-blueDark dark:hover:bg-navy-700'
+            ? 'border-signal-blue/40 bg-signal-blue/[0.07] shadow-soft before:absolute before:inset-y-2.5 before:left-1 before:w-[3px] before:rounded-full before:bg-gradient-to-b before:from-signal-blue before:to-signal-blueBright dark:border-signal-blueDark/40 dark:bg-signal-blueDark/10 dark:shadow-darkSoft dark:before:from-signal-blueDark dark:before:to-signal-blueBright'
+            : 'border-ink-950/[0.08] bg-paper-50 hover:border-signal-blue/60 hover:bg-paper-100 hover:shadow-soft dark:border-paper-50/[0.08] dark:bg-navy-800 dark:hover:border-signal-blueDark/60 dark:hover:bg-navy-700 dark:hover:shadow-darkSoft'
         "
         :aria-current="selectedName === method.name ? 'page' : undefined"
         @click="onMethodClick($event, method)"

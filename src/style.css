@@ -16,6 +16,9 @@
     color-scheme: light;
     --page-bg: #ffffff;
     --panel-bg: #ffffff;
+    --aurora-1: rgb(0 136 204 / 0.06);
+    --aurora-2: rgb(61 214 198 / 0.05);
+    --aurora-3: rgb(169 227 75 / 0.04);
     background: var(--page-bg);
   }
 
@@ -23,6 +26,9 @@
     color-scheme: dark;
     --page-bg: #17212b;
     --panel-bg: #232e3c;
+    --aurora-1: rgb(51 144 236 / 0.12);
+    --aurora-2: rgb(61 214 198 / 0.07);
+    --aurora-3: rgb(94 176 243 / 0.06);
     background: var(--page-bg);
   }
 
@@ -33,18 +39,27 @@
   html {
     min-width: 320px;
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0 0 0 / 0.25) transparent;
+  }
+
+  :root[data-theme='dark'] html {
+    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
   }
 
   body {
     min-height: 100vh;
     margin: 0;
     overflow-x: hidden;
-    /* A static, low-opacity wash (no motion) so the page reads as one considered surface instead
-       of a flat solid fill — the main "not dry" lever is the fields themselves, this is a quiet
-       supporting touch behind them. */
+    /* A static, three-stop wash (no motion on the page itself — see .breathe usages for where the
+       app's small animation budget goes instead) so the page reads as one considered surface
+       instead of a flat solid fill. */
     background:
-      radial-gradient(1200px circle at 15% -10%, rgb(0 136 204 / 0.05), transparent 60%),
+      radial-gradient(1100px circle at 12% -10%, var(--aurora-1), transparent 55%),
+      radial-gradient(900px circle at 100% 8%, var(--aurora-2), transparent 50%),
+      radial-gradient(800px circle at 20% 120%, var(--aurora-3), transparent 55%),
       var(--page-bg);
+    background-attachment: fixed;
     color: #000000;
     font-family:
       -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Lucida Grande', ui-sans-serif,
@@ -57,10 +72,57 @@
   }
 
   :root[data-theme='dark'] body {
-    background:
-      radial-gradient(1200px circle at 15% -10%, rgb(51 144 236 / 0.08), transparent 60%),
-      var(--page-bg);
     color: #ffffff;
+  }
+
+  ::selection {
+    background-color: rgb(0 136 204 / 0.25);
+  }
+
+  :root[data-theme='dark'] ::selection {
+    background-color: rgb(51 144 236 / 0.35);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(0 0 0 / 0.2);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(0 136 204 / 0.45);
+  }
+
+  :root[data-theme='dark'] *::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 0.15);
+  }
+
+  :root[data-theme='dark'] *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(51 144 236 / 0.5);
+  }
+
+  /* App-wide reduced-motion guard: every animation/transition added for this theme refresh (hover
+     lifts, the header glow breathe, modal-pop, toasts, ...) collapses to an instant, one-shot state
+     change instead of being individually gated. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   button,
@@ -91,11 +153,11 @@
   }
 
   .control {
-    @apply w-full min-w-0 rounded-lg border border-ink-950/[0.08] bg-paper-100 px-3 text-ink-950 outline-none transition focus:border-signal-blue focus:ring-4 focus:ring-signal-blue/15 dark:border-paper-50/[0.08] dark:bg-navy-900 dark:text-paper-50 dark:focus:border-signal-blueDark dark:focus:ring-signal-blueDark/25;
+    @apply w-full min-w-0 rounded-lg border border-ink-950/[0.08] bg-paper-100 px-3 text-ink-950 outline-none transition duration-200 ease-out hover:border-ink-950/20 focus:border-signal-blue focus:ring-4 focus:ring-signal-blue/15 dark:border-paper-50/[0.08] dark:hover:border-paper-50/20 dark:bg-navy-900 dark:text-paper-50 dark:focus:border-signal-blueDark dark:focus:ring-signal-blueDark/25;
   }
 
   .icon-button {
-    @apply inline-grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-950/[0.08] bg-paper-100 text-ink-700 transition hover:border-signal-blueHover hover:bg-signal-blue/10 hover:text-signal-blueHover focus:outline-none focus:ring-4 focus:ring-signal-blue/15 dark:border-paper-50/[0.08] dark:bg-navy-800 dark:text-paper-300 dark:hover:border-signal-blueBright dark:hover:bg-signal-blueDark/15 dark:hover:text-signal-blueBright dark:focus:ring-signal-blueDark/25;
+    @apply inline-grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-950/[0.08] bg-paper-100 text-ink-700 transition duration-200 ease-out hover:-translate-y-px hover:border-signal-blueHover hover:bg-signal-blue/10 hover:text-signal-blueHover focus:outline-none focus:ring-4 focus:ring-signal-blue/15 active:translate-y-0 active:scale-90 dark:border-paper-50/[0.08] dark:bg-navy-800 dark:text-paper-300 dark:hover:border-signal-blueBright dark:hover:bg-signal-blueDark/15 dark:hover:text-signal-blueBright dark:focus:ring-signal-blueDark/25;
   }
 
   /* A button "attached" to the end of a FieldControl (upload, remove, ...): flush against the box
@@ -104,15 +166,44 @@
   siblings are separated by the divide-x border FieldControl puts on their shared wrapper; that
   wrapper also owns the outer rounded corner, so this class itself stays square. */
   .control-suffix-button {
-    @apply grid h-full w-11 shrink-0 place-items-center text-ink-700 transition hover:bg-signal-blue/10 hover:text-signal-blueHover focus:outline-none focus:ring-2 focus:ring-inset focus:ring-signal-blue/40 dark:text-paper-300 dark:hover:bg-signal-blueDark/15 dark:hover:text-signal-blueBright;
+    @apply grid h-full w-11 shrink-0 place-items-center text-ink-700 transition duration-200 ease-out hover:bg-signal-blue/10 hover:text-signal-blueHover focus:outline-none focus:ring-2 focus:ring-inset focus:ring-signal-blue/40 active:scale-90 dark:text-paper-300 dark:hover:bg-signal-blueDark/15 dark:hover:text-signal-blueBright;
   }
 
   .code-pane {
-    @apply max-h-[34rem] overflow-auto rounded-lg bg-ink-950 p-4 font-mono text-[0.82rem] leading-6 text-paper-100 shadow-inner dark:bg-black;
+    @apply max-h-[34rem] overflow-auto rounded-xl bg-ink-950 p-4 font-mono text-[0.82rem] leading-6 text-paper-100 shadow-inner dark:bg-black;
   }
 
   .empty-pane {
-    @apply rounded-lg border border-dashed border-ink-950/15 bg-paper-100 p-4 text-sm leading-6 text-ink-700 dark:border-paper-50/15 dark:bg-navy-800 dark:text-paper-300;
+    @apply rounded-xl border border-dashed border-ink-950/15 bg-paper-100 p-4 text-sm leading-6 text-ink-700 dark:border-paper-50/15 dark:bg-navy-800 dark:text-paper-300;
+  }
+}
+
+@layer components {
+  /* Shared entrance/exit for every modal (FullscreenModal, PrivacyNoticeModal, TypeEditorModal):
+     the backdrop fades while the dialog itself (marked `.panel`) fades and settles in from a slight
+     scale/offset, instead of popping in instantly. Centralized here so all three modals stay in
+     sync without repeating the same rules. */
+  .modal-pop-enter-active,
+  .modal-pop-leave-active {
+    transition: opacity 0.18s ease;
+  }
+
+  .modal-pop-enter-active .panel,
+  .modal-pop-leave-active .panel {
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .modal-pop-enter-from,
+  .modal-pop-leave-to {
+    opacity: 0;
+  }
+
+  .modal-pop-enter-from .panel,
+  .modal-pop-leave-to .panel {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
   }
 }
 
