@@ -6,6 +6,8 @@ import { displayName, fileAccept, inferKind } from '@/lib/telegram';
 import { resolvableVariants } from '@/lib/typeSchema';
 import AppCheckbox from '@/components/AppCheckbox.vue';
 import ExpandableText from '@/components/ExpandableText.vue';
+import FieldControl from '@/components/FieldControl.vue';
+import FieldMeta from '@/components/FieldMeta.vue';
 
 // TypeEditorModal (and the recursive TypeFieldEditor tree it pulls in) is the
 // single largest chunk of component code in the app, but only a minority of
@@ -69,16 +71,12 @@ function onFile(event: Event) {
   <div
     class="min-w-0 rounded-xl border border-ink-950/[0.08] bg-paper-50 p-4 dark:border-paper-50/[0.08] dark:bg-navy-800"
   >
-    <span class="block min-w-0">
-      <span class="break-words font-black">{{ displayName(parameter.name) }}</span>
-      <span v-if="parameter.required" class="text-signal-red"> *</span>
-    </span>
-    <span class="text-xs">Type: </span>
-    <span
-      class="mt-2 inline-flex max-w-full truncate rounded-md bg-paper-200 px-2 py-1 font-mono text-[0.7rem] font-bold text-ink-700 dark:bg-navy-700 dark:text-paper-300"
-    >
-      {{ parameter.type }}
-    </span>
+    <FieldMeta
+      :name="displayName(parameter.name)"
+      :required="parameter.required"
+      :type="parameter.type"
+      size="lg"
+    />
     <ExpandableText
       tag="blockquote"
       class="mt-3 min-h-5 rounded-md border-l-4 border-signal-blue/40 bg-signal-blue/5 p-1 pl-2 text-xs italic leading-5 text-ink-700 dark:border-signal-blueDark/50 dark:bg-navy-700 dark:text-paper-300"
@@ -100,30 +98,28 @@ function onFile(event: Event) {
     </label>
 
     <div v-else-if="kind === 'file'" class="mt-4">
-      <div
-        class="flex min-w-0 overflow-hidden rounded-lg border border-ink-950/[0.08] bg-paper-100 focus-within:border-signal-blue focus-within:ring-4 focus-within:ring-signal-blue/15 dark:border-paper-50/[0.08] dark:bg-navy-900 dark:focus-within:border-signal-blueDark dark:focus-within:ring-signal-blueDark/25"
+      <FieldControl
+        v-model="fileState.text"
+        :label="displayName(parameter.name)"
+        placeholder="file_id or https://..."
+        :disabled="fileState.mode === 'file'"
       >
-        <input
-          v-model="fileState.text"
-          class="h-11 min-w-0 flex-1 bg-transparent px-3 outline-none disabled:text-ink-950 disabled:opacity-100 dark:disabled:text-paper-50"
-          type="text"
-          :placeholder="fileState.file ? `${fileState.file.name}` : 'file_id or https://...'"
-          :disabled="fileState.mode === 'file'"
-        />
-        <label class="icon-button m-1" title="Choose file">
-          <Upload class="h-4 w-4" />
-          <input class="sr-only" type="file" :accept="fileAccept(parameter)" @change="onFile" />
-        </label>
-        <button
-          v-if="fileState.mode === 'file'"
-          class="icon-button m-1"
-          type="button"
-          title="Remove file"
-          @click="fileState = { mode: 'text', text: '', file: null }"
-        >
-          <X class="h-4 w-4" />
-        </button>
-      </div>
+        <template #suffix>
+          <label class="control-suffix-button" title="Choose file">
+            <Upload class="h-4 w-4" />
+            <input class="sr-only" type="file" :accept="fileAccept(parameter)" @change="onFile" />
+          </label>
+          <button
+            v-if="fileState.mode === 'file'"
+            class="control-suffix-button"
+            type="button"
+            title="Remove file"
+            @click="fileState = { mode: 'text', text: '', file: null }"
+          >
+            <X class="h-4 w-4" />
+          </button>
+        </template>
+      </FieldControl>
       <p class="mt-2 truncate text-xs text-ink-700 dark:text-paper-300">
         {{
           fileState.mode === 'file'
@@ -133,24 +129,26 @@ function onFile(event: Event) {
       </p>
     </div>
 
-    <div v-else-if="kind === 'textarea' || kind === 'json'" class="relative mt-4">
-      <textarea
+    <div v-else-if="kind === 'textarea' || kind === 'json'" class="mt-4">
+      <FieldControl
         v-model="textValue"
-        class="control min-h-32 resize-y py-3"
-        :class="{ 'pr-11': showBuilder }"
-        :placeholder="kind === 'json' ? '{ }' : parameter.name + ':'"
-      />
-      <button
-        v-if="showBuilder"
-        ref="builderTriggerRef"
-        type="button"
-        class="icon-button absolute right-2 top-2 h-7 w-7 bg-paper-50/95 backdrop-blur dark:bg-navy-800/95"
-        title="Open visual builder"
-        aria-label="Open visual builder"
-        @click="builderOpen = true"
+        as="textarea"
+        :label="displayName(parameter.name)"
+        :placeholder="parameter.name + ':'"
       >
-        <Wand2 class="h-3.5 w-3.5" />
-      </button>
+        <template v-if="showBuilder" #suffix>
+          <button
+            ref="builderTriggerRef"
+            type="button"
+            class="icon-button h-7 w-7"
+            title="Open visual builder"
+            aria-label="Open visual builder"
+            @click="builderOpen = true"
+          >
+            <Wand2 class="h-3.5 w-3.5" />
+          </button>
+        </template>
+      </FieldControl>
       <TypeEditorModal
         v-if="showBuilder && schema"
         v-model="textValue"
@@ -160,11 +158,12 @@ function onFile(event: Event) {
       />
     </div>
 
-    <input
+    <FieldControl
       v-else
       v-model="textValue"
-      class="control mt-4 h-11"
+      class="mt-4"
       :type="kind === 'number' ? 'number' : 'text'"
+      :label="displayName(parameter.name)"
       :placeholder="parameter.name + ':'"
     />
   </div>
