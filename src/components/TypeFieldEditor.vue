@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useId, watch } from 'vue';
 import { ChevronDown, FileJson, MoveDown, MoveUp, Plus, Trash2, Upload } from 'lucide-vue-next';
 import type { TelegramParameter, TelegramSchema } from '@/types/schema';
 import {
@@ -18,6 +18,8 @@ import {
 import { displayName } from '@/lib/telegram';
 import AppCheckbox from '@/components/AppCheckbox.vue';
 import ExpandableText from '@/components/ExpandableText.vue';
+import FieldControl from '@/components/FieldControl.vue';
+import FieldMeta from '@/components/FieldMeta.vue';
 
 const props = defineProps<{
   node: TypeNode;
@@ -30,23 +32,30 @@ const props = defineProps<{
 const model = defineModel<unknown>({ required: true });
 
 const addButtonClass =
-  'inline-flex items-center gap-1.5 self-start rounded-lg border border-dashed border-ink-950/20 px-2.5 py-1.5 text-xs font-bold text-ink-700 transition hover:border-signal-blueHover hover:text-signal-blueHover dark:border-paper-50/20 dark:text-paper-300 dark:hover:border-signal-blueBright dark:hover:text-signal-blueBright';
+  'inline-flex items-center gap-1.5 self-start rounded-lg border border-dashed border-ink-950/20 px-3 py-1.5 text-xs font-bold text-ink-700 transition hover:border-signal-blueHover hover:text-signal-blueHover dark:border-paper-50/20 dark:text-paper-300 dark:hover:border-signal-blueBright dark:hover:text-signal-blueBright';
 
-// A lighter-weight echo of ParameterInput.vue's top-level field header (bold name + red
-// required-asterisk + monospace "Type:" pill + tinted description blockquote), scaled down to fit
-// a builder panel that may stack many of these per screen. Kept as shared class strings (like
-// addButtonClass above) so every place a field header renders — the flat-field branch and the
-// disclosure's expanded content — stays visually identical instead of drifting apart.
-// max-w-[min(10rem,100%)] rather than a bare max-w-[10rem]: several padding levels deep (e.g. a
-// button's switch_inline_query_chosen_chat field, itself nested inside a row inside a 2D array
-// inside the modal), the available width can shrink well below 10rem, and a bare fixed cap let this
-// pill render wider than its own containing box — visibly overflowing it — instead of truncating
-// down to fit. Capping at 100% of the parent as well keeps the truncate ellipsis actually effective
-// at every depth while still allowing pills up to 10rem wide when there's room.
-const fieldTypePillClass =
-  'inline-flex max-w-[min(10rem,100%)] shrink-0 truncate rounded bg-paper-200 px-1.5 py-0.5 font-mono text-[0.62rem] font-bold text-ink-700 dark:bg-navy-700 dark:text-paper-300';
 const fieldDescriptionClass =
-  'mb-1.5 mt-1 block rounded border-l-2 border-signal-blue/40 bg-signal-blue/5 py-0.5 pl-1.5 text-[0.68rem] italic leading-4 text-ink-700/80 dark:border-signal-blueDark/50 dark:bg-navy-700/60 dark:text-paper-300/80';
+  'mb-2 mt-1 block rounded border-l-2 border-signal-blue/40 bg-signal-blue/5 py-1 pl-2 text-[0.68rem] italic leading-4 text-ink-700/80 dark:border-signal-blueDark/50 dark:bg-navy-700/60 dark:text-paper-300/80';
+
+// Every "new box" nested inside a TypeFieldEditor (a collapsible field disclosure, array/row item
+// card) shares this one shade + border treatment, so the builder reads as a single family of boxes
+// instead of every level improvising its own tone. A custom type's own field list is deliberately
+// never boxed itself — that would just draw a second, purposeless border around whatever box its
+// caller (an item disclosure, a field disclosure, or the modal's own panel) already drew.
+const boxClass = 'rounded-lg border border-ink-950/[0.08] bg-paper-50 dark:border-paper-50/[0.08] dark:bg-navy-800';
+
+// The clickable header row of every disclosure (a custom field folded behind a toggle, a 2D-array
+// item, a plain-array item) — one shared class so all three read as the same kind of control
+// instead of three near-identical hand-tuned rows. Each usage additionally gets its own
+// rounded-t-lg so this row's hover fill respects the parent box's rounded top corners without the
+// box needing overflow-hidden (which would otherwise clip FieldMeta's tooltip popup too).
+const disclosureHeaderClass =
+  'flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1 px-3 py-2.5 text-left transition hover:bg-paper-100 dark:hover:bg-navy-700';
+
+// Namespaces this instance's disclosure content ids (aria-controls) so multiple TypeFieldEditor
+// instances mounted at once — every recursive level is mounted simultaneously, just visually
+// collapsed — never collide on id even when two sibling objects both have a field named the same.
+const uid = useId();
 
 /**
  * Name-based heuristic mirroring fileAccept()'s in src/lib/telegram.ts, used to decide whether a
@@ -146,14 +155,21 @@ const scalarModel = computed<string>({
   },
 });
 
-// A visible "this is an input" hint for the builder's scalar controls, mirroring
-// ParameterInput.vue's `parameter.name + ':'` convention at the top level. When this instance is a
-// named object field (props.field set), reuse that exact convention so the two forms feel like one
-// system. When it isn't — a positional array item, a union branch's root, or the modal's own root
-// value — there's no field name to draw from, so fall back to the branch's type label (e.g.
-// "String") via the same branchLabel() already used elsewhere for that purpose.
+// The resting placeholder for the builder's scalar controls, mirroring ParameterInput.vue's
+// `parameter.name + ':'` convention at the top level exactly, so the two forms feel like one
+// system. When this instance is a named object field (props.field set), reuse that raw
+// snake_case name. When it isn't — a positional array item, a union branch's root, or the modal's
+// own root value — there's no field name to draw from, so fall back to the branch's type label
+// (e.g. "String") via the same branchLabel() already used elsewhere for that purpose.
 const scalarPlaceholder = computed(() =>
   props.field ? `${props.field.name}:` : branchLabel(props.node),
+);
+
+// FieldControl's accessible name (aria-label) — the same source as scalarPlaceholder, just run
+// through displayName() for the Title Case a screen reader announcement reads better in (the
+// visible placeholder deliberately stays in the raw snake_case form instead).
+const scalarLabel = computed(() =>
+  props.field ? displayName(props.field.name) : branchLabel(props.node),
 );
 
 const longText = computed(() => {
@@ -212,15 +228,16 @@ function fieldValue(key: string): unknown {
 type CustomFieldEntry = {
   field: TelegramParameter;
   childNode: TypeNode;
-  heavy: boolean;
+  collapsible: boolean;
   visited: string[];
 };
 
 /**
  * Precomputes each subfield's resolved node kind once per render (rather than re-parsing it separately for
- * the disclosure check and for the recursive editor prop). "Heavy" fields — another nested object, a list,
- * or a variant picker — get collapsed behind a closed-by-default disclosure (see the `custom` branch of the
- * template) so the form doesn't render fully expanded several levels deep; plain scalar inputs stay flat.
+ * the disclosure check and for the recursive editor prop). Every field — scalar or nested — renders behind
+ * the same closed-by-default disclosure (see the `custom` branch of the template) so the form reads as one
+ * consistent list instead of scalars and nested objects looking/behaving differently; the one exception is
+ * `collapsible` below.
  */
 const customFieldEntries = computed<CustomFieldEntry[]>(() => {
   if (props.node.kind !== 'custom') return [];
@@ -229,13 +246,10 @@ const customFieldEntries = computed<CustomFieldEntry[]>(() => {
   // A field only gets collapsed behind a disclosure when doing so actually declutters something: a type
   // whose *only* field is itself heavy (e.g. InlineKeyboardMarkup, whose one field is inline_keyboard) has
   // nothing to hide it among, so collapsing it would just add a click before the user can start building.
-  const canCollapse = props.node.type.fields.length > 1;
+  const collapsible = props.node.type.fields.length > 1;
   return props.node.type.fields.map((field) => {
     const childNode = fieldNode(field, props.schema, props.depth + 1);
-    const heavy =
-      canCollapse &&
-      (childNode.kind === 'custom' || childNode.kind === 'array' || childNode.kind === 'union');
-    return { field, childNode, heavy, visited };
+    return { field, childNode, collapsible, visited };
   });
 });
 
@@ -268,6 +282,14 @@ function subFieldHint(childNode: TypeNode, value: unknown, visited: readonly str
     );
     return filled ? branchLabel(branch) : `${branchLabel(branch)} · not set`;
   }
+  if (childNode.kind === 'primitive') {
+    if (childNode.name === 'Boolean' || childNode.name === 'True') {
+      return value === true ? 'True' : 'False';
+    }
+    if (typeof value === 'string') return value.trim() ? value : 'Not set';
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+    return 'Not set';
+  }
   // custom: prefer a recognizable label (e.g. a nested button's own "text") the same way collapsed array
   // items do; fall back to a plain set/not-set based on whether it would actually serialize to anything.
   const label = summarizeCustomValue(childNode, value, '');
@@ -277,6 +299,14 @@ function subFieldHint(childNode: TypeNode, value: unknown, visited: readonly str
     false,
   );
   return filled ? 'Set' : 'Not set';
+}
+
+// branchLabel() joins every branch of a union with " or " — exactly what an "Add {type}" button
+// needs when the array holds a single concrete type, but unusable once that type is itself a big
+// union (e.g. InputRichBlock's ~20 variants), where it would spell the entire "X or Y or Z or ..."
+// chain into one button. Button labels only ever need a short, generic noun in that case.
+function addLabel(node: TypeNode): string {
+  return node.kind === 'union' ? 'item' : branchLabel(node);
 }
 
 function setArrayItems(next: unknown[]) {
@@ -439,58 +469,55 @@ function setUnionValue(value: unknown) {
     <span>{{ boolModel ? 'True' : 'False' }}</span>
   </label>
 
-  <!-- h-9/text-sm is the builder's dense scalar size — deliberately one step down from the
-  top-level form's h-11 primary inputs (ParameterInput.vue), and shared consistently by every
+  <!-- size="sm" is the builder's dense scalar size — deliberately one step down from the
+  top-level form's size="lg" primary inputs (ParameterInput.vue), shared consistently by every
   single-line control in this file (this input, the file-like input below, and the array-of-primitive
   item inputs further down) so a String field looks the same everywhere inside the builder. -->
-  <input
+  <FieldControl
     v-else-if="node.kind === 'primitive' && (node.name === 'Integer' || node.name === 'Float')"
     v-model="scalarModel"
     type="number"
-    class="control h-9 text-sm"
+    size="sm"
+    :label="scalarLabel"
     :placeholder="scalarPlaceholder"
   />
 
-  <textarea
+  <FieldControl
     v-else-if="node.kind === 'primitive' && longText"
     v-model="scalarModel"
-    class="control min-h-24 resize-y py-2 text-sm"
+    as="textarea"
+    size="sm"
+    min-height="min-h-24"
+    :label="scalarLabel"
     :placeholder="scalarPlaceholder"
   />
 
-  <div
+  <FieldControl
     v-else-if="node.kind === 'primitive' && fileLikeField"
-    class="flex min-w-0 items-center gap-1.5"
+    v-model="scalarModel"
+    size="sm"
+    :label="scalarLabel"
+    placeholder="file_id / URL / filename"
   >
-    <input
-      v-model="scalarModel"
-      type="text"
-      class="control h-9 min-w-0 flex-1 text-sm"
-      placeholder="file_id / URL / filename"
-    />
-    <label class="icon-button h-9 w-9 shrink-0" title="Fill from a local file's name">
-      <Upload class="h-3.5 w-3.5" />
-      <input class="sr-only" type="file" @change="onFileLikeChange" />
-    </label>
-  </div>
+    <template #suffix>
+      <label class="control-suffix-button" title="Fill from a local file's name">
+        <Upload class="h-3.5 w-3.5" />
+        <input class="sr-only" type="file" @change="onFileLikeChange" />
+      </label>
+    </template>
+  </FieldControl>
 
-  <input
+  <FieldControl
     v-else-if="node.kind === 'primitive'"
     v-model="scalarModel"
-    type="text"
-    class="control h-9 text-sm"
+    size="sm"
+    :label="scalarLabel"
     :placeholder="scalarPlaceholder"
   />
 
-  <div
-    v-else-if="node.kind === 'custom'"
-    class="min-w-0 space-y-3 rounded-lg border border-ink-950/[0.06] bg-paper-50/70 p-3 dark:border-paper-50/[0.06] dark:bg-navy-900/40"
-  >
+  <div v-else-if="node.kind === 'custom'" class="min-w-0 space-y-3.5">
     <div v-for="entry in customFieldEntries" :key="entry.field.name" class="min-w-0">
-      <div
-        v-if="entry.heavy"
-        class="rounded-md border border-ink-950/[0.08] bg-paper-50 dark:border-paper-50/[0.08] dark:bg-navy-800"
-      >
+      <div v-if="entry.collapsible" :class="boxClass">
         <!-- flex-wrap (not a plain single-line flex row): the hint+chevron chunk on the right is
         shrink-0 and won't give up width, so on a narrow container a long field name used to get
         squeezed into whatever sliver was left over and wrap across many cramped lines. Letting the
@@ -498,13 +525,17 @@ function setUnionValue(value: unknown) {
         row width to wrap into at most a couple of lines. -->
         <button
           type="button"
-          class="flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1 px-2.5 py-2 text-left"
+          :class="[disclosureHeaderClass, 'rounded-t-lg']"
+          :aria-expanded="isExpanded(entry.field.name)"
+          :aria-controls="`${uid}-f-${entry.field.name}`"
           @click="toggleExpanded(entry.field.name)"
         >
-          <span class="min-w-0 text-xs font-bold text-ink-700 dark:text-paper-300">
-            {{ displayName(entry.field.name) }}
-            <span v-if="entry.field.required" class="text-signal-red">*</span>
-          </span>
+          <FieldMeta
+            size="sm"
+            :name="displayName(entry.field.name)"
+            :required="entry.field.required"
+            :type="entry.childNode.kind !== 'union' ? entry.field.type : undefined"
+          />
           <span class="flex shrink-0 items-center gap-1.5 text-ink-700/60 dark:text-paper-300/60">
             <span class="max-w-[10rem] truncate text-[0.68rem] font-semibold">
               {{ subFieldHint(entry.childNode, fieldValue(entry.field.name), entry.visited) }}
@@ -516,17 +547,12 @@ function setUnionValue(value: unknown) {
           </span>
         </button>
         <div
+          :id="`${uid}-f-${entry.field.name}`"
           class="grid transition-[grid-template-rows] duration-200 ease-out"
           :style="{ gridTemplateRows: isExpanded(entry.field.name) ? '1fr' : '0fr' }"
         >
           <div class="overflow-hidden">
-            <div class="border-t border-ink-950/[0.08] p-2.5 dark:border-paper-50/[0.08]">
-              <!-- Skipped for a union child: the variant toggle TypeFieldEditor renders just below
-              already spells out every branch by name (e.g. "Integer" / "String"), so a standalone
-              "Integer or String" pill here would just repeat what the toggle already says better. -->
-              <span v-if="entry.childNode.kind !== 'union'" :class="fieldTypePillClass">{{
-                entry.field.type
-              }}</span>
+            <div class="border-t border-ink-950/[0.08] p-3.5 dark:border-paper-50/[0.08]">
               <ExpandableText
                 v-if="entry.field.description"
                 tag="p"
@@ -549,13 +575,12 @@ function setUnionValue(value: unknown) {
         </div>
       </div>
       <template v-else>
-        <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <label class="text-xs font-bold text-ink-700 dark:text-paper-300">
-            {{ displayName(entry.field.name) }}
-            <span v-if="entry.field.required" class="text-signal-red">*</span>
-          </label>
-          <span :class="fieldTypePillClass">{{ entry.field.type }}</span>
-        </div>
+        <FieldMeta
+          size="sm"
+          :name="displayName(entry.field.name)"
+          :required="entry.field.required"
+          :type="entry.field.type"
+        />
         <ExpandableText
           v-if="entry.field.description"
           tag="p"
@@ -577,13 +602,14 @@ function setUnionValue(value: unknown) {
     </div>
   </div>
 
-  <div v-else-if="node.kind === 'array' && node.of.kind === 'array'" class="min-w-0 space-y-3">
+  <div v-else-if="node.kind === 'array' && node.of.kind === 'array'" class="min-w-0 space-y-3.5">
     <div
       v-for="(row, rowIndex) in rows2D"
       :key="rowIndex"
-      class="rounded-lg border border-ink-950/[0.08] bg-paper-100 p-2.5 dark:border-paper-50/[0.08] dark:bg-navy-900"
+      class="rounded-lg border border-ink-950/[0.08] bg-paper-100 p-3 dark:border-paper-50/[0.08] dark:bg-navy-900"
+      :aria-label="`Row ${rowIndex + 1}`"
     >
-      <div class="mb-2 flex items-center justify-between gap-2">
+      <div class="mb-2.5 flex items-center justify-between gap-2">
         <span
           class="text-[0.68rem] font-black uppercase tracking-wide text-ink-700 dark:text-paper-300"
           >Row {{ rowIndex + 1 }}</span
@@ -617,25 +643,18 @@ function setUnionValue(value: unknown) {
           </button>
         </div>
       </div>
-      <div class="space-y-2">
-        <div
-          v-for="(item, itemIndex) in row"
-          :key="itemIndex"
-          class="rounded-md border border-ink-950/[0.08] bg-paper-50 dark:border-paper-50/[0.08] dark:bg-navy-800"
-        >
+      <div class="space-y-2.5">
+        <div v-for="(item, itemIndex) in row" :key="itemIndex" :class="boxClass">
           <button
             type="button"
-            class="flex w-full items-center justify-between gap-2 px-2.5 py-2 text-left text-xs font-bold"
+            :class="[disclosureHeaderClass, 'rounded-t-lg text-xs font-bold']"
+            :aria-expanded="isExpanded(`${rowIndex}:${itemIndex}`)"
+            :aria-controls="`${uid}-r-${rowIndex}-${itemIndex}`"
             @click="toggleExpanded(`${rowIndex}:${itemIndex}`)"
           >
-            <span class="truncate">{{
+            <span class="min-w-0 truncate">{{
               node.of.of.kind === 'custom'
-                ? summarizeCustomValue(
-                    node.of.of,
-                    item,
-                    `Item
-              ${itemIndex + 1}`,
-                  )
+                ? summarizeCustomValue(node.of.of, item, `Item ${itemIndex + 1}`)
                 : `Item ${itemIndex + 1}`
             }}</span>
             <span class="flex shrink-0 items-center gap-1">
@@ -653,11 +672,12 @@ function setUnionValue(value: unknown) {
             </span>
           </button>
           <div
+            :id="`${uid}-r-${rowIndex}-${itemIndex}`"
             class="grid transition-[grid-template-rows] duration-200 ease-out"
             :style="{ gridTemplateRows: isExpanded(`${rowIndex}:${itemIndex}`) ? '1fr' : '0fr' }"
           >
             <div class="overflow-hidden">
-              <div class="border-t border-ink-950/[0.08] p-2.5 dark:border-paper-50/[0.08]">
+              <div class="border-t border-ink-950/[0.08] p-3.5 dark:border-paper-50/[0.08]">
                 <TypeFieldEditor
                   :node="node.of.of"
                   :schema="schema"
@@ -671,7 +691,7 @@ function setUnionValue(value: unknown) {
           </div>
         </div>
         <button type="button" :class="addButtonClass" @click="addItem2D(rowIndex)">
-          <Plus class="h-3.5 w-3.5" /> Add {{ branchLabel(node.of.of) }}
+          <Plus class="h-3.5 w-3.5" /> Add {{ addLabel(node.of.of) }}
         </button>
       </div>
     </div>
@@ -710,18 +730,19 @@ function setUnionValue(value: unknown) {
     </button>
   </div>
 
-  <div v-else-if="node.kind === 'array' && node.of.kind === 'primitive'" class="min-w-0 space-y-2">
-    <div v-for="(item, index) in items" :key="index" class="flex items-center gap-2">
-      <input
+  <div v-else-if="node.kind === 'array' && node.of.kind === 'primitive'" class="min-w-0 space-y-2.5">
+    <div v-for="(item, index) in items" :key="index" class="flex items-start gap-2">
+      <FieldControl
+        :model-value="typeof item === 'string' || typeof item === 'number' ? String(item) : ''"
         :type="node.of.name === 'Integer' || node.of.name === 'Float' ? 'number' : 'text'"
-        class="control h-9 flex-1 text-sm"
-        :value="typeof item === 'string' || typeof item === 'number' ? item : ''"
-        :placeholder="`${branchLabel(node.of)} ${index + 1}`"
-        @input="setArrayItem(index, ($event.target as HTMLInputElement).value)"
+        size="sm"
+        class="min-w-0 flex-1"
+        :label="`${branchLabel(node.of)} ${index + 1}`"
+        @update:model-value="(value) => setArrayItem(index, value)"
       />
       <button
         type="button"
-        class="icon-button h-8 w-8 shrink-0 hover:border-signal-red hover:text-signal-red"
+        class="icon-button mt-1 h-7 w-7 shrink-0 hover:border-signal-red hover:text-signal-red"
         title="Remove"
         @click="removeArrayItem(index)"
       >
@@ -729,22 +750,20 @@ function setUnionValue(value: unknown) {
       </button>
     </div>
     <button type="button" :class="addButtonClass" @click="addArrayItem">
-      <Plus class="h-3.5 w-3.5" /> Add {{ branchLabel(node.of) }}
+      <Plus class="h-3.5 w-3.5" /> Add {{ addLabel(node.of) }}
     </button>
   </div>
 
-  <div v-else-if="node.kind === 'array'" class="min-w-0 space-y-2">
-    <div
-      v-for="(item, index) in items"
-      :key="index"
-      class="rounded-md border border-ink-950/[0.08] bg-paper-100 dark:border-paper-50/[0.08] dark:bg-navy-900"
-    >
+  <div v-else-if="node.kind === 'array'" class="min-w-0 space-y-2.5">
+    <div v-for="(item, index) in items" :key="index" :class="boxClass">
       <button
         type="button"
-        class="flex w-full items-center justify-between gap-2 px-2.5 py-2 text-left text-xs font-bold"
+        :class="[disclosureHeaderClass, 'rounded-t-lg text-xs font-bold']"
+        :aria-expanded="isExpanded(`i:${index}`)"
+        :aria-controls="`${uid}-i-${index}`"
         @click="toggleExpanded(`i:${index}`)"
       >
-        <span class="truncate">{{
+        <span class="min-w-0 truncate">{{
           node.of.kind === 'custom'
             ? summarizeCustomValue(node.of, item, `Item ${index + 1}`)
             : `Item ${index + 1}`
@@ -760,11 +779,12 @@ function setUnionValue(value: unknown) {
         </span>
       </button>
       <div
+        :id="`${uid}-i-${index}`"
         class="grid transition-[grid-template-rows] duration-200 ease-out"
         :style="{ gridTemplateRows: isExpanded(`i:${index}`) ? '1fr' : '0fr' }"
       >
         <div class="overflow-hidden">
-          <div class="border-t border-ink-950/[0.08] p-2.5 dark:border-paper-50/[0.08]">
+          <div class="border-t border-ink-950/[0.08] p-3.5 dark:border-paper-50/[0.08]">
             <TypeFieldEditor
               :node="node.of"
               :schema="schema"
@@ -778,20 +798,26 @@ function setUnionValue(value: unknown) {
       </div>
     </div>
     <button type="button" :class="addButtonClass" @click="addArrayItem">
-      <Plus class="h-3.5 w-3.5" /> Add {{ branchLabel(node.of) }}
+      <Plus class="h-3.5 w-3.5" /> Add {{ addLabel(node.of) }}
     </button>
   </div>
 
   <div v-else-if="node.kind === 'union'" class="min-w-0">
+    <!-- overflow-x-auto instead of flex-wrap: on the builder's narrow widths a wrapping pill row
+    could eat several lines of vertical space and reflow awkwardly as the modal resizes. A single
+    scrollable row keeps this a fixed, predictable height at every width. -->
     <div
       v-if="renderableBranchIndices.length > 1"
-      class="mb-3 flex flex-wrap gap-1.5 rounded-lg bg-paper-200 p-1 dark:bg-navy-900"
+      role="group"
+      :aria-label="`${field ? displayName(field.name) : 'Value'} type`"
+      class="scrollbar-none mb-3 flex gap-1.5 overflow-x-auto rounded-lg bg-paper-200 p-1 dark:bg-navy-900"
     >
       <button
         v-for="index in renderableBranchIndices"
         :key="index"
         type="button"
-        class="rounded-md px-2.5 py-1.5 text-xs font-bold transition"
+        :aria-pressed="effectiveVariant === index"
+        class="shrink-0 rounded-md px-2.5 py-1.5 text-xs font-bold transition"
         :class="
           effectiveVariant === index
             ? 'bg-paper-50 text-signal-blueHover shadow-soft dark:bg-navy-700 dark:text-signal-blueBright'

@@ -67,7 +67,7 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
         <div class="relative flex min-h-full items-center justify-center">
           <div
             ref="dialogRef"
-            class="panel relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl"
+            class="panel relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl"
             role="dialog"
             aria-modal="true"
             :aria-labelledby="titleId"
@@ -81,7 +81,7 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
             />
 
             <div
-              class="relative shrink-0 overflow-hidden border-b border-ink-950/[0.08] px-5 py-4 dark:border-paper-50/[0.08]"
+              class="relative shrink-0 overflow-hidden border-b border-ink-950/[0.08] px-6 py-4 dark:border-paper-50/[0.08]"
             >
               <div
                 class="pointer-events-none absolute inset-0 bg-gradient-to-r from-signal-blue/10 via-transparent to-transparent dark:from-signal-blueDark/15"
@@ -89,7 +89,7 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
               <div class="relative flex items-center justify-between gap-3">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
                   <div
-                    class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-signal-blue/30 bg-signal-blue/10 text-signal-blue dark:border-signal-blueDark/30 dark:bg-signal-blueDark/15 dark:text-signal-blueBright"
+                    class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-signal-blue/30 bg-signal-blue/10 text-signal-blue dark:border-signal-blueDark/30 dark:bg-signal-blueDark/15 dark:text-signal-blueBright"
                   >
                     <Wand2 class="h-5 w-5" />
                   </div>
@@ -97,11 +97,6 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
                     <h3 :id="titleId" class="truncate text-lg font-black">
                       {{ displayName(parameter.name) }} builder
                     </h3>
-                    <p
-                      class="mt-1 inline-flex max-w-full truncate rounded-md bg-paper-200 px-2 py-0.5 font-mono text-[0.7rem] font-bold text-ink-700 dark:bg-navy-700 dark:text-paper-300"
-                    >
-                      {{ parameter.type }}
-                    </p>
                   </div>
                 </div>
                 <button
@@ -116,7 +111,7 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
               </div>
             </div>
 
-            <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
               <TypeFieldEditor
                 v-if="formState !== null"
                 v-model="formState"
@@ -137,7 +132,7 @@ const { onKeydown } = useFocusTrap(dialogRef, cancel);
             </div>
 
             <div
-              class="flex shrink-0 items-center justify-between gap-3 border-t border-ink-950/[0.08] bg-paper-100/60 px-5 py-4 dark:border-paper-50/[0.08] dark:bg-navy-900/40"
+              class="flex shrink-0 items-center justify-between gap-3 border-t border-ink-950/[0.08] bg-paper-100/60 px-6 py-4 dark:border-paper-50/[0.08] dark:bg-navy-900/40"
             >
               <p class="hidden text-[0.7rem] text-ink-700/70 dark:text-paper-300/70 sm:block">
                 <span class="text-signal-red">*</span> Required fields
